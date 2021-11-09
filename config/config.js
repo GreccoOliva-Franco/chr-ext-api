@@ -11,7 +11,7 @@ const config = {
   },
   session: {
     secret: process.env.SESSION_SECRET,
-    expireTime: process.env.SESSION_EXPIRE_TIME,
+    expireTime: process.env.SESSION_EXPIRE_TIME, // Actualmente 3 hrs
   },
 };
 
