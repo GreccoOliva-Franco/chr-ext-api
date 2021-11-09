@@ -53,7 +53,23 @@ route
       const words = [];
 
       fs.createReadStream(newPath)
-        .pipe(csvParser({ headers: true, separator: "," }))
+        .pipe(
+          csvParser({
+            headers: true,
+            separator: ",",
+            mapHeaders: ({ header, index }) => {
+              const newHeaders = [
+                "_id",
+                "originalWord",
+                "text",
+                "textInfo",
+                "source",
+                "active",
+              ];
+              return newHeaders[index];
+            },
+          })
+        )
         .on("data", (data) => {
           words.push(data);
         })
