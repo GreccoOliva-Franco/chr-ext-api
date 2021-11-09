@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>#MásDatos - API</title>
+    <link rel="stylesheet" href="../css/styles.css" type="text/css" />
+    <script src="../js/home.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>Administración de la API #MásDatos</h1>
+    </header>
+
+    <main>
+      <div class="actions">
+        <button id="download">Descargar palabras</button>
+        <button id="upload">Subir palabras</button>
+      </div>
+
+      <form
+        class="hidden"
+        id="form"
+        action="/api/words"
+        method="POST"
+        enctype="multipart/form-data"
+      >
+        <input type="file" name="csvFile" id="file" required />
+        <button type="submit" id="submit">Enviar</button>
+      </form>
+
+      <h3>Instrucciones:</h3>
+
+      <cite>
+        <p>
+          Para evitar posibles errores, es recomendable realizar los siguientes
+          pasos:
+        </p>
+        <ol>
+          <li>
+            Descargar el archivo con las palabras mediante el botón "Descargar
+            palabras"
+          </li>
+          <li>
+            Abrir dicho archivo en Excel u otro intérprete de archivos CSV
+          </li>
+          <li>Realizar las modificaciones pertinentes</li>
+          <li>Guardarlo sobreescribiendo el mismo archivo</li>
+          <li>
+            Subir el nuevo listado de palabras mediante "Subir palabras"
+            adjuntando el archivo modificado
+          </li>
+        </ol>
+      </cite>
+    </main>
+  </body>
+</html>

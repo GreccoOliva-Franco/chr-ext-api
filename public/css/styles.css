@@ -1,0 +1,27 @@
+:root {
+  --yellow: rgb(255, 0, 0)
+  --violete: rgb(255, 0, 150)
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.title {
+  color: --violete;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.hidden {
+  display: none;
+}
+
+.blue {
+  background-color: blue;
+}
