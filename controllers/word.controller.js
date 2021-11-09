@@ -1,47 +1,56 @@
 import { Word } from "../models/word.model.js";
 
 class WordController {
-  async getWords() {
-    const filter = {};
-    const fields = [
-      "_id",
-      "originalWord",
-      "text",
-      "textInfo",
-      "source",
-      "active",
-    ];
+    async getWords() {
+        const filter = {};
+        const fields = [
+            "_id",
+            "originalWord",
+            "text",
+            "textInfo",
+            "source",
+            "active",
+        ];
 
-    const words = await Word.find(filter, fields);
+        const words = await Word.find().lean().exec();
 
-    return words;
-  }
+        return words.map((word) => {
+            delete word.deletedAt;
+            delete word.createdAt;
+            delete word.updatedAt;
+            delete word.__v;
+            return {
+                _id: word._id.toString(),
+                ...word
+            }
+        });
+    }
 
-  async getActiveWords() {
-    const filter = { active: true };
-    const fields = ["originalWord", "text", "textInfo", "source"];
+    async getActiveWords() {
+        const filter = { active: true };
+        const fields = ["originalWord", "text", "textInfo", "source"];
 
-    const words = await Word.find(filter, fields);
+        const words = await Word.find(filter, fields);
 
-    return words;
-  }
+        return words;
+    }
 
-  saveMany(records) {
-    records.forEach(async (record) => {
-      if (record._id) {
-        const doc = await Word.findById(record._id);
+    saveMany(records) {
+        records.forEach(async (record) => {
+            if (record._id) {
+                const doc = await Word.findById(record._id);
 
-        if (!doc) {
-          Word.create(record);
-        } else {
-          if (record.active === false) record.deletedAt = Date.now();
-          Word.findByIdAndUpdate(record._id, record);
-        }
-      } else {
-        Word.create(record);
-      }
-    });
-  }
+                if (!doc) {
+                    Word.create(record);
+                } else {
+                    if (record.active === false) record.deletedAt = Date.now();
+                    Word.findByIdAndUpdate(record._id, record);
+                }
+            } else {
+                Word.create(record);
+            }
+        });
+    }
 }
 
 export { WordController };
