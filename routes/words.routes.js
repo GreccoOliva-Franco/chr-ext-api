@@ -1,11 +1,10 @@
 import { Router } from "express";
 import { WordController } from "../controllers/word.controller.js";
-import { createObjectCsvWriter } from "csv-writer";
-import csvParser from "csv-parser";
 import multer from "multer";
-import fs from "fs";
 import path from "path";
-
+import { csvToJson, jsonToCsv } from '../utils/csvUtils.js';
+import { readFile } from 'fs/promises';
+import { Word } from '../models/word.model.js';
 const route = Router();
 const upload = multer({ dest: "uploads/" });
 
@@ -16,53 +15,40 @@ route
 
         const controller = new WordController();
         const words = await controller.getWords();
+        const csvData = jsonToCsv(words);
 
-        const csvWriter = createObjectCsvWriter({
-            path: filePath,
-            header: [
-                { id: "_id", title: "_id", },
-                { id: "originalWord", title: "originalWord", },
-                { id: "text", title: "text", },
-                { id: "textInfo", title: "textInfo", },
-                { id: "source", title: "source", },
-                { id: "active", title: "active", },
-            ],
-        });
-
-        csvWriter.writeRecords(words).then(() => {
-            res.setHeader("Content-Type", "text/csv");
-            res.download(filePath);
-        });
+        res.setHeader("Content-Type", "text/csv");
+        res.send(csvData);
     })
-    .post("/", upload.single("csvFile"), (req, res) => {
-        const {
-            filename: fileName,
-            destination: uploadFolder,
-            originalname: fileNameNew,
-        } = req.file;
+    .post("/", upload.single("csvFile"), async (req, res) => {
+        try {
+            // read file from request object express
+            const file = req.file;
+            const filePath = path.join(process.cwd(), file.path);
+            const csvData = await readFile(filePath);
+            const wordsData = csvToJson(csvData);
 
-        const oldPath = uploadFolder + fileName;
-        const newPath = uploadFolder + fileNameNew;
 
-        fs.rename(oldPath, newPath, () => { });
-
-        if (fileNameNew.split(".").pop() !== "csv") {
-            fs.unlink(oldPath, () => { });
-
-            res.send("El archivo debe ser en formato CSV");
-        } else {
-            const words = [];
-
-            fs.createReadStream(newPath)
-                .pipe(csvParser({ headers: true, separator: "," }))
-                .on("data", (data) => {
-                    words.push(data);
-                })
-                .on("end", () => {
-                    // header excel csv
-                    res.setHeader("Content-Type", "text/csv");
-                    res.json(words);
+            wordsData.forEach(async word => {
+                await Word.collection.findAndModify({
+                    query: { _id: word._id, active: true },
+                    update: {
+                        $setOnInsert: {
+                            word: word.word,
+                            originalWord: word.originalWord,
+                            text: word.text,
+                            textInfo: word.textInfo,
+                            source: word.source,
+                        }
+                    },
+                    upsert: true,
+                    new: true
                 });
+            });
+
+            res.json({ status: "ok" });
+        } catch (error) {
+            res.json({ status: "error", error });
         }
     })
     .get("/active", async (req, res) => {
